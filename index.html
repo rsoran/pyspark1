@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Run PySpark in Docker with VS Code</title>
+<style>
+ body{font-family:Segoe UI,Arial,sans-serif;max-width:900px;margin:30px auto;padding:0 16px;line-height:1.6;color:#222}
+ h1{border-bottom:3px solid #e25a1c;padding-bottom:6px}
+ h2{margin-top:36px;color:#e25a1c}
+ pre{background:#1e1e1e;color:#ddd;padding:12px;border-radius:6px;overflow:auto}
+ img{max-width:100%;border:1px solid #ccc;border-radius:6px}
+ .note{background:#fff6e5;border-left:4px solid #e2a21c;padding:8px 12px}
+</style>
+</head>
+<body>
+<h1>Run PySpark in a Docker container (with VS Code)</h1>
+<p>No Java, Python or Spark install needed on your computer. Docker packages Python 3.11, Java (JRE), PySpark 3.5.3, pandas, numpy and pyarrow for you.</p>
+
+<h2>Step 0 – Install the tools</h2>
+<ul>
+ <li><a href="https://www.docker.com/products/docker-desktop/">Docker Desktop</a> (start it and wait until it says "running")</li>
+ <li><a href="https://code.visualstudio.com/">Visual Studio Code</a> with the extensions <b>Python</b>, <b>Docker</b> and <b>Dev Containers</b> (Microsoft).</li>
+</ul>
+
+<h2>Step 1 – Check Docker works</h2>
+<p>Open VS Code, then <b>Terminal → New Terminal</b>.</p>
+<pre>docker --version</pre>
+<img src="screenshots/step1.png" alt="docker version">
+
+<h2>Step 2 – Open the project folder in VS Code</h2>
+<p><b>File → Open Folder…</b> and choose this <code>pyspark</code> folder. It contains:</p>
+<ul>
+ <li><code>Dockerfile</code> – recipe for the environment (Python + Java + dependencies)</li>
+ <li><code>requirements.txt</code> – Python packages (pyspark, pandas, numpy, pyarrow)</li>
+ <li><code>app.py</code> – a sample PySpark program</li>
+ <li><code>.devcontainer/devcontainer.json</code> – lets VS Code work inside the container</li>
+</ul>
+<img src="screenshots/step2.png" alt="folder contents">
+
+<h2>Step 3 – Build the image (first time only, a few minutes)</h2>
+<pre>docker build -t pyspark-demo .</pre>
+<img src="screenshots/step3.png" alt="docker build">
+<p>The last lines show the image was created and named <code>pyspark-demo</code>.</p>
+
+<h2>Step 4 – Confirm the image exists</h2>
+<pre>docker images pyspark-demo</pre>
+<img src="screenshots/step4.png" alt="docker images">
+
+<h2>Step 5 – Run the PySpark program</h2>
+<pre>docker run --rm pyspark-demo</pre>
+<img src="screenshots/step5.png" alt="pyspark output">
+<p>You should see <code>Spark version: 3.5.3</code> and two tables. Spark's startup warnings (e.g. "Unable to load native-hadoop library") are harmless.</p>
+
+<h2>Step 6 – Edit code and run your own version</h2>
+<p>Edit <code>app.py</code> in VS Code, then run it using the live folder (no rebuild needed).</p>
+<pre>
+# PowerShell
+docker run --rm -v "${PWD}:/app" pyspark-demo python app.py
+# Command Prompt:  -v "%cd%:/app"
+</pre>
+<p>Quick version check:</p>
+<img src="screenshots/step6.png" alt="version check">
+
+<h2>Step 7 – Work inside the container from VS Code (recommended)</h2>
+<ol>
+ <li>Press <b>F1</b> (or Ctrl+Shift+P) → <b>Dev Containers: Reopen in Container</b>.</li>
+ <li>Wait for the build; the bottom-left corner shows <b>Dev Container: PySpark</b>.</li>
+ <li>Open <code>app.py</code> and click the ▶ <b>Run Python File</b> button, or in the VS Code terminal run <code>python app.py</code>.</li>
+ <li>To go back: F1 → <b>Dev Containers: Reopen Folder Locally</b>.</li>
+</ol>
+
+<h2>Interactive shell / PySpark REPL</h2>
+<pre>
+docker run --rm -it -v "${PWD}:/app" pyspark-demo bash
+docker run --rm -it pyspark-demo pyspark
+</pre>
+
+<h2>Troubleshooting</h2>
+<div class="note">
+ <ul>
+  <li><b>"Cannot connect to the Docker daemon"</b> – start Docker Desktop first.</li>
+  <li><b>Build is slow</b> – normal the first time (image ≈ 1.6 GB); later builds use the cache.</li>
+  <li><b>Out of memory</b> – Docker Desktop → Settings → Resources → raise memory to 4 GB+.</li>
+  <li>Windows: use WSL 2 backend (default in Docker Desktop).</li>
+ </ul>
+</div>
+</body>
+</html>
